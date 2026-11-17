@@ -58,6 +58,19 @@ class Agent:
                 due = f" - due {t['due']}" if t.get("due") else ""
                 lines.append(f"  #{t['id']} {t['title']}{due}")
             return "\n".join(lines)
+        if name == "due_summary":
+            labels = [
+                ("overdue", "Overdue"),
+                ("due_soon", f"Due in the next {result['within_days']} days"),
+                ("later", "Later"),
+                ("no_date", "No date"),
+            ]
+            lines = []
+            for key, label in labels:
+                for t in result[key]:
+                    due = f" (due {t['due']})" if t.get("due") else ""
+                    lines.append(f"{label}: #{t['id']} {t['title']}{due}")
+            return "\n".join(lines) if lines else "Nothing on your plate - no open tasks."
         if name == "complete_task":
             return f"Task #{result['id']} marked done." if result["updated"] else "No such task."
         if name == "log_application":

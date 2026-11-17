@@ -13,6 +13,18 @@ const QUICK_ACTIONS = [
   "Look up prereqs for CMSC351",
 ];
 
+function dueBadge(due: string | null): { label: string; cls: string } | null {
+  if (!due) return null;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const d = new Date(`${due}T00:00:00`);
+  const days = Math.round((d.getTime() - today.getTime()) / 86400000);
+  if (days < 0) return { label: "overdue", cls: "overdue" };
+  if (days === 0) return { label: "today", cls: "soon" };
+  if (days <= 7) return { label: `in ${days}d`, cls: "soon" };
+  return null;
+}
+
 export default function App() {
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -93,12 +105,16 @@ export default function App() {
             <p className="muted">None</p>
           ) : (
             <ul>
-              {tasks.map((t) => (
-                <li key={t.id}>
-                  {t.title}
-                  {t.due ? <span className="due"> - {t.due}</span> : null}
-                </li>
-              ))}
+              {tasks.map((t) => {
+                const badge = dueBadge(t.due);
+                return (
+                  <li key={t.id}>
+                    {t.title}
+                    {t.due ? <span className="due"> - {t.due}</span> : null}
+                    {badge ? <span className={`badge ${badge.cls}`}>{badge.label}</span> : null}
+                  </li>
+                );
+              })}
             </ul>
           )}
         </section>

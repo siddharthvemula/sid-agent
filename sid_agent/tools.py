@@ -8,6 +8,7 @@ course data, and read the profile - they never send or submit anything.
 import json
 import re
 import urllib.request
+from datetime import date
 
 _COURSE_CODE_RE = re.compile(r"\b[A-Z]{4}\d{3}[A-Z]?\b")
 
@@ -52,6 +53,30 @@ def _create_task(ctx, title, due=None):
 
 def _list_tasks(ctx, status="open"):
     return {"tasks": ctx["store"].list_tasks(status)}
+
+
+def _due_summary(ctx, within_days=7):
+    """Bucket open tasks by urgency: overdue / due soon / later / no date."""
+    today = date.today()
+    buckets = {"overdue": [], "due_soon": [], "later": [], "no_date": []}
+    for task in ctx["store"].list_tasks("open"):
+        due = task.get("due")
+        if not due:
+            buckets["no_date"].append(task)
+            continue
+        try:
+            due_date = date.fromisoformat(due)
+        except ValueError:
+            buckets["no_date"].append(task)
+            continue
+        delta = (due_date - today).days
+        if delta < 0:
+            buckets["overdue"].append(task)
+        elif delta <= int(within_days):
+            buckets["due_soon"].append(task)
+        else:
+            buckets["later"].append(task)
+    return {"today": today.isoformat(), "within_days": int(within_days), **buckets}
 
 
 def _complete_task(ctx, task_id):
@@ -99,6 +124,11 @@ REGISTRY = {
         "fn": _list_tasks,
         "description": "List tasks by status (default: open).",
         "params": {"status": "string"},
+    },
+    "due_summary": {
+        "fn": _due_summary,
+        "description": "Summarize open tasks by urgency: overdue, due within N days, later, and undated.",
+        "params": {"within_days": "integer"},
     },
     "complete_task": {
         "fn": _complete_task,

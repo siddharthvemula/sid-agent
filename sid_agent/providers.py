@@ -151,6 +151,8 @@ class MockProvider(LLMProvider):
         m = re.match(r"what is my (.+?)\?$", low)
         if m:
             return ProviderPlan([ToolCall("recall_memory", {"key": m.group(1)})])
+        if "due" in low or "coming up" in low:
+            return ProviderPlan([ToolCall("due_summary", {})])
         if "list" in low and "task" in low:
             return ProviderPlan([ToolCall("list_tasks", {})])
         if "list" in low and "application" in low:
