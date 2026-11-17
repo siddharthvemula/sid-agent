@@ -15,13 +15,15 @@ A personal AI agent tailored to Sid Vemula — built to **do** things, not just 
 ```bash
 cd sid-agent
 python -m unittest discover tests        # core test suite (stdlib only)
+python -m evals.run_evals                # 30-scenario eval suite
+python scripts/demo.py                   # scripted end-to-end demo
 
 # CLI
 python -m sid_agent.cli "remind me to submit the form by 2026-11-20"
 python -m sid_agent.cli "log application to Acme for SWE Intern"
 python -m sid_agent.cli                  # interactive mode
 
-# Web stack (Stage 2)
+# Web stack
 python -m venv .venv && .venv/bin/pip install -r requirements.txt
 .venv/bin/python -m unittest discover tests   # full suite incl. API + providers (21 tests)
 .venv/bin/uvicorn sid_agent.api:app --port 8000
@@ -45,5 +47,5 @@ starting the API or CLI. The core engine stays zero-dependency — Python
 
 - **Stage 1 (done):** engine, tools, store, mock provider, CLI, tests, eval seed.
 - **Stage 2 (done):** Claude + OpenAI adapters (unit-tested via fake transport; live use needs an API key), FastAPI backend (`/chat`, `/tasks`, `/applications`, `/profile`, `/tools`), React + TypeScript chat UI with live task/application sidebar.
-- **Stage 3:** full eval runner incl. multi-step tasks, demo script, deployment.
+- **Stage 3 (done):** eval suite grown to 30 scenarios (profile facts, task/application lifecycles, memory, live course lookups, privacy/honesty cases, multi-step compound and sequential requests) with an automated runner — **30/30 passing**; scripted demo (`python scripts/demo.py`); GitHub-ready repo with CI (backend tests + evals, frontend typecheck + build) and a Dockerfile for the API.
 - **Later (only on Sid's say-so):** private data layer, calendar/email connectors, proactive reminders.
