@@ -1,0 +1,1 @@
+{"$schema":"https://openapi.vercel.sh/vercel.json","buildCommand":"npm --prefix frontend run build","framework":"vite","installCommand":"npm --prefix frontend install","outputDirectory":"frontend/dist"}

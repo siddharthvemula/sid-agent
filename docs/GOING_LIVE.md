@@ -28,6 +28,29 @@ GitHub needs you to log in once; nobody else can do this for you.
    pushes. GitHub Actions will run the test suite, evals, and frontend
    build automatically on every push.
 
+## Step 1b — Put it on the web with Vercel
+
+The web app runs the agent entirely in the browser, so Vercel can host
+it as a static site — free, no server, no keys.
+
+- **With GitHub (after Step 1):** go to vercel.com → *Add New → Project →
+  Import* → pick the `sid-agent` repo → Deploy. The `vercel.json` in the
+  repo already has the right settings; don't change anything.
+- **Without GitHub:** in a terminal in the project folder:
+
+  ```bash
+  npm i -g vercel
+  vercel
+  ```
+
+  It asks you to log in (browser), then accept the defaults. You get a
+  live `*.vercel.app` URL at the end.
+
+Either way: visitors get their own copy of the agent (their tasks and
+applications save in their own browser). The live-LLM upgrade in Step 2
+applies to the local Python version; wiring a model into the hosted
+site is a later step (serverless route + hosted database).
+
 ## Step 2 — Plug in a live LLM (optional)
 
 The mock provider understands fixed patterns. A real model understands

@@ -1,5 +1,5 @@
-import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
-import { api, Application, Profile, Task } from "./api";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import { Application, createAgent, Task } from "./agent/engine";
 
 interface Message {
   role: "user" | "agent";
@@ -8,6 +8,7 @@ interface Message {
 
 const QUICK_ACTIONS = [
   "What courses am I taking?",
+  "What's due this week?",
   "List tasks",
   "List applications",
   "Look up prereqs for CMSC351",
@@ -26,35 +27,25 @@ function dueBadge(due: string | null): { label: string; cls: string } | null {
 }
 
 export default function App() {
+  const agent = useMemo(() => createAgent(), []);
+  const profile = agent.profile;
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "agent",
-      text: "I'm SidAgent. I do things: try \"remind me to submit the form by 2026-11-20\" or \"log application to Acme for SWE Intern\".",
+      text: "I'm SidAgent, running entirely in your browser. I do things: try \"remind me to submit the form by 2026-11-20\" or \"log application to Acme for SWE Intern\". Your tasks and applications are saved on this device.",
     },
   ]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
-  const [provider, setProvider] = useState<string>("?");
-  const [profile, setProfile] = useState<Profile | null>(null);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [apps, setApps] = useState<Application[]>([]);
   const bottomRef = useRef<HTMLDivElement>(null);
 
-  const refreshSidebar = useCallback(async () => {
-    try {
-      const [t, a] = await Promise.all([api.tasks(), api.applications()]);
-      setTasks(t.open);
-      setApps(a.applications);
-    } catch {
-      /* backend offline - sidebar just stays as-is */
-    }
-  }, []);
-
   useEffect(() => {
-    api.health().then((h) => setProvider(h.provider)).catch(() => setProvider("offline"));
-    api.profile().then(setProfile).catch(() => undefined);
-    refreshSidebar();
-  }, [refreshSidebar]);
+    const s = agent.getState();
+    setTasks(s.tasks);
+    setApps(s.applications);
+  }, [agent]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -67,16 +58,13 @@ export default function App() {
     setInput("");
     setBusy(true);
     try {
-      const reply = await api.chat(trimmed);
+      const reply = await agent.handle(trimmed);
       setMessages((m) => [...m, { role: "agent", text: reply }]);
-    } catch {
-      setMessages((m) => [
-        ...m,
-        { role: "agent", text: "Backend unreachable - is the API running on port 8000?" },
-      ]);
     } finally {
       setBusy(false);
-      refreshSidebar();
+      const s = agent.getState();
+      setTasks(s.tasks);
+      setApps(s.applications);
     }
   }
 
@@ -89,16 +77,14 @@ export default function App() {
     <div className="layout">
       <aside className="sidebar">
         <h1>SidAgent</h1>
-        <p className="provider">provider: {provider}</p>
-        {profile && (
-          <section>
-            <h2>{profile.name}</h2>
-            <p>{profile.degree}</p>
-            <p>
-              {profile.school} - graduating {profile.graduation}
-            </p>
-          </section>
-        )}
+        <p className="provider">provider: mock (in-browser) - no key, no cost</p>
+        <section>
+          <h2>{profile.name}</h2>
+          <p>{profile.degree}</p>
+          <p>
+            {profile.school} - graduating {profile.graduation}
+          </p>
+        </section>
         <section>
           <h2>Open tasks ({tasks.length})</h2>
           {tasks.length === 0 ? (
