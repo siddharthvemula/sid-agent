@@ -3,7 +3,15 @@
 SidAgent v1 works fully offline on the mock provider. Two steps remain, both
 need Sid himself (his accounts, his keys). Each takes about 2 minutes.
 
-## Step 1 — Push to GitHub
+## Step 1 — Push to GitHub ✅ DONE (2026-11-16)
+
+Pushed: https://github.com/siddharthvemula/sid-agent (private; full
+history, 7 commits, CI included). Future pushes from the dev machine
+just work (`git push`). To make the repo public for resume links:
+GitHub repo → Settings → General → Danger Zone → Change visibility.
+The manual steps below are kept for reference / other machines.
+
+## Step 1 (manual reference) — Push to GitHub
 
 GitHub needs you to log in once; nobody else can do this for you.
 
